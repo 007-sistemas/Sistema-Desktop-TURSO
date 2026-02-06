@@ -37,10 +37,3 @@ Thumbs.db
 
 *.sqlite3
 
-# Build outputs
-bin/
-obj/
-
-# Local databases
-*.db
-*.sqlite
