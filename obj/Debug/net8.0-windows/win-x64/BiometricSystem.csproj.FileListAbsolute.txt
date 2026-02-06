@@ -166,3 +166,4 @@ C:\Users\usuario\Downloads\Sistema-Desktop-TURSO-main\Sistema-Desktop-TURSO-main
 C:\Users\usuario\Downloads\Sistema-Desktop-TURSO-main\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\BiometricSystem.pdb
 C:\Users\usuario\Downloads\Sistema-Desktop-TURSO-main\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\BiometricSystem.genruntimeconfig.cache
 C:\Users\usuario\Downloads\Sistema-Desktop-TURSO-main\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\ref\BiometricSystem.dll
+C:\Users\usuario\Downloads\Sistema-Desktop-TURSO-main\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\BiometricSystem.sourcelink.json

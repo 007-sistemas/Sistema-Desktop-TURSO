@@ -1016,6 +1016,7 @@ namespace BiometricSystem.Forms
                             var diff = (agora - ultimaEntradaDt.Value).TotalMinutes;
                             if (diff <= 60)
                             {
+                                LogToFile($"⚠️ SAIDA bloqueada: ENTRADA há {diff:F1} min (limite 60) - {matchedCooperadoNome}");
                                 // Exibir alerta amarelo
                                 panelSimulador.BackColor = System.Drawing.Color.FromArgb(255, 255, 200); // Amarelo claro
                                 lblSimulador.Text = $"⚠️ {matchedCooperadoNome}, você já possui um registro de ENTRADA às {ultimaEntradaDt:HH:mm}.";
@@ -1023,6 +1024,11 @@ namespace BiometricSystem.Forms
                                 lblSimulador.ForeColor = System.Drawing.Color.FromArgb(180, 120, 0); // Amarelo escuro
                                 lblSimulador.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
                                 lblStatus.Text = $"⚠️ ENTRADA recente - {matchedCooperadoNome}";
+
+                                selectedSetor = null;
+                                selectedSetorId = null;
+                                cmbSetor.SelectedIndex = -1;
+                                cmbSetor.Text = string.Empty;
                                 
                                 // Agendar limpeza automática
                                 AgendarLimpezaPainel();
@@ -1225,6 +1231,12 @@ namespace BiometricSystem.Forms
                 lblSimulador.Font = new System.Drawing.Font("Segoe UI", 12F);
                 lblSimulador.TextAlign = System.Drawing.ContentAlignment.TopLeft;
                 lblStatus.Text = "Selecione o setor para ativar o leitor";
+
+                selectedSetor = null;
+                selectedSetorId = null;
+                cmbSetor.SelectedIndex = -1;
+                cmbSetor.Text = string.Empty;
+                LogToFile("⏰ Setor/Ala limpo apos registro");
                 
                 LogToFile($"⏰ Limpando painel - concluído");
             }
