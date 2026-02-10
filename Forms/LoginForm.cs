@@ -919,6 +919,7 @@ namespace BiometricSystem.Forms
                 if (string.IsNullOrWhiteSpace(selectedSetor))
                 {
                     lblStatus.Text = "⚠️ Selecione o setor para registrar";
+                    ExibirAvisoSetorNoPainel();
                     return;
                 }
 
@@ -1377,11 +1378,22 @@ namespace BiometricSystem.Forms
             AgendarLimpezaPainel();
         }
 
+        private void ExibirAvisoSetorNoPainel()
+        {
+            panelSimulador.BackColor = System.Drawing.Color.FromArgb(255, 255, 200);
+            lblSimulador.Text = "Selecione o setor para registrar";
+            lblSimulador.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            lblSimulador.ForeColor = System.Drawing.Color.FromArgb(180, 120, 0);
+            lblSimulador.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            AgendarLimpezaPainel();
+        }
+
         private void RegistrarProducao(string cooperadoId, string cooperadoNome)
         {
             if (string.IsNullOrWhiteSpace(selectedSetor))
             {
                 lblStatus.Text = "⚠️ Selecione o setor para registrar";
+                ExibirAvisoSetorNoPainel();
                 return;
             }
 
