@@ -1,0 +1,95 @@
+📊 ESTRUTURA DE ARMAZENAMENTO DE BIOMETRIAS
+============================================
+
+1. LOCAL (SQLite - biometric.db)
+   └─ Banco de dados arquivo: bin\Release\net8.0-windows\win-x64\biometric.db
+   
+   Tabelas:
+   ├─ Biometrias (armazena as capturas)
+   │  ├─ Id (UUID)
+   │  ├─ CooperadoId (UUID do cooperado)
+   │  ├─ CooperadoNome (nome do cooperado)
+   │  ├─ FingerIndex (dedo: 0)
+   │  ├─ Hash (SHA256 do template)
+   │  ├─ Template (BLOB - dados biométricos em bytes)
+   │  ├─ CreatedAt (data/hora de captura)
+   │  ├─ SyncedToTurso (0=não sincronizado, 1=sincronizado)
+   │  └─ LastSyncTime (última sincronização)
+   │
+   ├─ Pontos (registros de produção - entrada/saída)
+   │  ├─ Id (UUID)
+   │  ├─ Codigo (código relacionado à entrada)
+   │  ├─ CooperadoId (UUID do cooperado)
+   │  ├─ CooperadoNome (nome do cooperado)
+   │  ├─ Timestamp (data/hora do registro)
+   │  ├─ Tipo (ENTRADA ou SAIDA)
+   │  ├─ Local (unidade - setor)
+   │  ├─ HospitalId (UUID da unidade)
+   │  ├─ SetorId (ID do setor)
+   │  ├─ Status (status do registro)
+   │  ├─ IsManual (0=biométrico, 1=manual)
+   │  ├─ RelatedId (ID da entrada relacionada)
+   │  ├─ SyncedToTurso (0=não sincronizado, 1=sincronizado)
+   │  └─ LastSyncTime (última sincronização)
+   │
+   ├─ Setores (cache de setores da unidade)
+   │  ├─ Id (ID do setor)
+   │  ├─ Nome (nome do setor)
+   │  ├─ HospitalId (UUID da unidade)
+   │  └─ LastSyncTime (data da sincronização)
+   │
+   └─ Employees (compatibilidade - pode estar vazio)
+      └─ (Estrutura legada)
+
+2. CLOUD (Turso libSQL)
+   └─ Host: (configurado no Turso)
+   
+   Tabelas principais:
+   ├─ biometrias (cópia das biometrias locais)
+   │  └─ Sincronizado automaticamente em background
+   │
+   ├─ pontos (cópia dos registros de produção)
+   │  └─ Sincronizado automaticamente em background
+   │
+   └─ cooperados (lista de funcionários)
+      └─ Id, Nome, CPF, Email, etc.
+
+3. FLUXO DE CAPTURA E ARMAZENAMENTO:
+   
+   a) Captura de Biometria:
+      1. Usuário coloca dedo no leitor
+      2. FingerprintService captura via SDK DigitalPersona
+      3. Gera template em bytes (1632 bytes)
+      4. Armazena em variável _biometriaCapturada
+      
+   b) Registro de Biometria (CadastrarBiometriaForm):
+      1. Template → SalvarBiometriaLocal(template)
+      2. Insere em Biometrias tabela SQLite
+      3. Envia para Turso async em background
+      
+   c) Verificação/Login (LoginForm):
+      1. OnFingerprintCaptured(template)
+      2. BuscarBiometriasLocais() → lê todas de Biometrias
+      3. VerifyAgainstTemplate(template) → compara com cada template local
+      4. Se match encontrado → registra produção em Pontos
+      5. Sincroniza com Turso em background
+
+4. LOCALIZAÇÃO DO ARQUIVO DB:
+   c:\Users\Gabriel Gomes\Documents\Sistema Desktop\bin\Release\net8.0-windows\win-x64\biometric.db
+
+5. COMO VERIFICAR DADOS ARMAZENADOS:
+   - Use SQLite Browser ou DBeaver
+   - Abra o arquivo biometric.db
+   - Veja as tabelas: Biometrias, Pontos, Setores
+   - Template está armazenado como BLOB (dados binários)
+
+6. SEGURANÇA:
+   - Templates nunca saem em texto claro
+   - Hash SHA256 gerado para auditoria
+   - Sincronização via HTTPS (Turso)
+   - Dados locais em SQLite (criptografia opcional)
+
+7. SINCRONIZAÇÃO:
+   - Automática em background após cada registro
+   - Flag SyncedToTurso = 1 quando sincronizado
+   - Retry automático se falhar
