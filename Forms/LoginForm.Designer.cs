@@ -241,7 +241,7 @@ namespace BiometricSystem.Forms
             this.tblCpfKeypad.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tblCpfKeypad.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
             this.tblCpfKeypad.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
-            this.tblCpfKeypad.Size = new System.Drawing.Size(232, 120);
+            this.tblCpfKeypad.Size = new System.Drawing.Size(232, 132);
             this.tblCpfKeypad.TabIndex = 2;
 
             // btnCpf1
@@ -254,6 +254,7 @@ namespace BiometricSystem.Forms
             this.btnCpf1.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf1.Name = "btnCpf1";
             this.btnCpf1.Text = "1";
+            this.btnCpf1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf1.UseVisualStyleBackColor = false;
             this.btnCpf1.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -267,6 +268,7 @@ namespace BiometricSystem.Forms
             this.btnCpf2.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf2.Name = "btnCpf2";
             this.btnCpf2.Text = "2";
+            this.btnCpf2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf2.UseVisualStyleBackColor = false;
             this.btnCpf2.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -280,6 +282,7 @@ namespace BiometricSystem.Forms
             this.btnCpf3.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf3.Name = "btnCpf3";
             this.btnCpf3.Text = "3";
+            this.btnCpf3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf3.UseVisualStyleBackColor = false;
             this.btnCpf3.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -293,6 +296,7 @@ namespace BiometricSystem.Forms
             this.btnCpf4.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf4.Name = "btnCpf4";
             this.btnCpf4.Text = "4";
+            this.btnCpf4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf4.UseVisualStyleBackColor = false;
             this.btnCpf4.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -306,6 +310,7 @@ namespace BiometricSystem.Forms
             this.btnCpf5.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf5.Name = "btnCpf5";
             this.btnCpf5.Text = "5";
+            this.btnCpf5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf5.UseVisualStyleBackColor = false;
             this.btnCpf5.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -319,6 +324,7 @@ namespace BiometricSystem.Forms
             this.btnCpf6.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf6.Name = "btnCpf6";
             this.btnCpf6.Text = "6";
+            this.btnCpf6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf6.UseVisualStyleBackColor = false;
             this.btnCpf6.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -332,6 +338,7 @@ namespace BiometricSystem.Forms
             this.btnCpf7.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf7.Name = "btnCpf7";
             this.btnCpf7.Text = "7";
+            this.btnCpf7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf7.UseVisualStyleBackColor = false;
             this.btnCpf7.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -345,6 +352,7 @@ namespace BiometricSystem.Forms
             this.btnCpf8.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf8.Name = "btnCpf8";
             this.btnCpf8.Text = "8";
+            this.btnCpf8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf8.UseVisualStyleBackColor = false;
             this.btnCpf8.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -358,6 +366,7 @@ namespace BiometricSystem.Forms
             this.btnCpf9.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf9.Name = "btnCpf9";
             this.btnCpf9.Text = "9";
+            this.btnCpf9.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf9.UseVisualStyleBackColor = false;
             this.btnCpf9.Click += new System.EventHandler(this.CpfDigit_Click);
 
@@ -371,6 +380,7 @@ namespace BiometricSystem.Forms
             this.btnCpf0.ForeColor = System.Drawing.Color.FromArgb(30, 30, 30);
             this.btnCpf0.Name = "btnCpf0";
             this.btnCpf0.Text = "0";
+            this.btnCpf0.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCpf0.UseVisualStyleBackColor = false;
             this.btnCpf0.Click += new System.EventHandler(this.CpfDigit_Click);
 
