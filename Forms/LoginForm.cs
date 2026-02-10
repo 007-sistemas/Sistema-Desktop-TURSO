@@ -1,5 +1,3 @@
-
-
 using BiometricSystem.Database;
 using BiometricSystem.Models;
 using BiometricSystem.Services;
@@ -1369,6 +1367,12 @@ namespace BiometricSystem.Forms
 
             lblStatus.Text = $"✅ {tipoExibicao} registrada - {nomeCooperado}";
 
+            // Bloquear seleção de setor durante a mensagem
+            cmbSetor.Enabled = false;
+            cmbSetor.Focus();
+            this.ActiveControl = null;
+            cmbSetor.DroppedDown = false;
+
             // Agendar limpeza automática do painel
             AgendarLimpezaPainel();
         }
@@ -1380,6 +1384,10 @@ namespace BiometricSystem.Forms
             lblSimulador.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             lblSimulador.ForeColor = System.Drawing.Color.FromArgb(180, 120, 0);
             lblSimulador.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            cmbSetor.Enabled = false;
+            cmbSetor.Focus();
+            this.ActiveControl = null;
+            cmbSetor.DroppedDown = false;
             AgendarLimpezaPainel();
         }
 
@@ -1422,7 +1430,10 @@ namespace BiometricSystem.Forms
                         selectedSetorId = null;
                         cmbSetor.SelectedIndex = -1;
                         cmbSetor.Text = string.Empty;
-
+                        cmbSetor.Enabled = false;
+                        cmbSetor.Focus();
+                        this.ActiveControl = null;
+                        cmbSetor.DroppedDown = false;
                         // Agendar limpeza automática
                         AgendarLimpezaPainel();
                         return;
@@ -1535,6 +1546,10 @@ namespace BiometricSystem.Forms
             lblSimulador.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             lblSimulador.ForeColor = System.Drawing.Color.FromArgb(180, 0, 0);
             lblSimulador.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            cmbSetor.Enabled = false;
+            cmbSetor.Focus();
+            this.ActiveControl = null;
+            cmbSetor.DroppedDown = false;
             AgendarLimpezaPainel();
         }
 
@@ -1546,6 +1561,10 @@ namespace BiometricSystem.Forms
             lblSimulador.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             lblSimulador.ForeColor = System.Drawing.Color.FromArgb(200, 100, 0);
             lblSimulador.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            cmbSetor.Enabled = false;
+            cmbSetor.Focus();
+            this.ActiveControl = null;
+            cmbSetor.DroppedDown = false;
             AgendarLimpezaPainel();
         }
 
@@ -1555,36 +1574,28 @@ namespace BiometricSystem.Forms
         private void AgendarLimpezaPainel()
         {
             LogToFile($"⏰ Agendando limpeza do painel em 5 segundos...");
-            
             // Usar thread separada para aguardar 5 segundos e depois limpar
             var cleanupThread = new Thread(() =>
             {
                 try
                 {
                     Thread.Sleep(5000);
-                    
-                    // Executar na thread UI
-                    this.Invoke(new Action(() =>
+                    // Limpeza do painel deve ser feita na thread da UI
+                    if (this.InvokeRequired)
                     {
-                        try
-                        {
-                            LogToFile($"⏰ Limpando painel após 5 segundos");
-                            LimparPainelSimulador();
-                        }
-                        catch (Exception ex)
-                        {
-                            LogToFile($"❌ Erro ao limpar painel: {ex.Message}");
-                        }
-                    }));
+                        this.Invoke(new Action(() => LimparPainelSimulador()));
+                    }
+                    else
+                    {
+                        LimparPainelSimulador();
+                    }
                 }
                 catch (Exception ex)
                 {
                     LogToFile($"❌ Erro na thread de limpeza: {ex.Message}");
                 }
-            })
-            {
-                IsBackground = true
-            };
+            });
+            cleanupThread.IsBackground = true;
             cleanupThread.Start();
         }
 
@@ -1604,6 +1615,7 @@ namespace BiometricSystem.Forms
                 selectedSetorId = null;
                 cmbSetor.SelectedIndex = -1;
                 cmbSetor.Text = string.Empty;
+                cmbSetor.Enabled = true;
                 LogToFile("⏰ Setor/Ala limpo apos registro");
                 
                 LogToFile($"⏰ Limpando painel - concluído");
