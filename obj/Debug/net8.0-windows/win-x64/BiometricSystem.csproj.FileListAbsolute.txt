@@ -222,3 +222,4 @@ C:\Users\PcGabriel\Downloads\Sistema-Desktop-TURSO-main\bin\Debug\net8.0-windows
 c:\Users\PcGabriel\Downloads\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\Biometri.3C916F4D.Up2Date
 c:\Users\PcGabriel\Downloads\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\BiometricSystem.genruntimeconfig.cache
 c:\Users\PcGabriel\Downloads\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\ref\BiometricSystem.dll
+C:\Users\PcGabriel\Downloads\Sistema-Desktop-TURSO-main\obj\Debug\net8.0-windows\win-x64\BiometricSystem.sourcelink.json

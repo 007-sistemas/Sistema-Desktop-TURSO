@@ -42,8 +42,8 @@ namespace BiometricSystem.Forms
         private bool _isVerifying = false;
         private bool _cpfUpdating = false;
         private bool _cpfProcessing = false;
-        private bool _cpfCacheSyncInProgress = false;
-        private System.Windows.Forms.Timer? _cpfCacheRefreshTimer;
+        private bool _cooperadosSyncInProgress = false;
+        private System.Windows.Forms.Timer? _cooperadosSyncTimer;
         private bool? _setoresSyncOk = null;
         public bool VoltarDaProducao { get; set; } = false;
         private string? hospitalId;
@@ -231,8 +231,8 @@ namespace BiometricSystem.Forms
             // Aplicar bordas arredondadas
             AplicarBordasArredondadas();
 
-            // Atualizacao do cache CPF em background
-            IniciarTimerAtualizacaoCpfCache();
+            // Atualizacao da tabela cooperados em background
+            IniciarTimerAtualizacaoCooperados();
         }
 
         private async void LoginForm_Shown(object? sender, EventArgs e)
@@ -827,42 +827,34 @@ namespace BiometricSystem.Forms
             await RegistrarProducaoPorCpfAsync();
         }
 
-        private int ObterCpfCacheTtlMinutes()
+        private int ObterCooperadosRefreshMinutes()
         {
-            var ttlConfig = _config?["Cache:CpfCacheTtlMinutes"] ?? _config?["CpfCacheTtlMinutes"];
-            if (int.TryParse(ttlConfig, out var ttl) && ttl > 0)
-                return ttl;
-            return 720;
-        }
-
-        private int ObterCpfCacheRefreshMinutes()
-        {
-            var refreshConfig = _config?["Cache:CpfCacheRefreshMinutes"] ?? _config?["CpfCacheRefreshMinutes"];
+            var refreshConfig = _config?["Cache:CooperadosRefreshMinutes"] ?? _config?["CooperadosRefreshMinutes"];
             if (int.TryParse(refreshConfig, out var refresh) && refresh > 0)
                 return refresh;
-            return 30;
+            return 1;
         }
 
-        private void IniciarTimerAtualizacaoCpfCache()
+        private void IniciarTimerAtualizacaoCooperados()
         {
-            if (_cpfCacheRefreshTimer != null)
+            if (_cooperadosSyncTimer != null)
                 return;
 
-            _cpfCacheRefreshTimer = new System.Windows.Forms.Timer();
-            _cpfCacheRefreshTimer.Interval = ObterCpfCacheRefreshMinutes() * 60 * 1000;
-            _cpfCacheRefreshTimer.Tick += async (s, e) =>
+            _cooperadosSyncTimer = new System.Windows.Forms.Timer();
+            _cooperadosSyncTimer.Interval = ObterCooperadosRefreshMinutes() * 60 * 1000;
+            _cooperadosSyncTimer.Tick += async (s, e) =>
             {
-                await AtualizarCpfCacheLocalAsync();
+                await AtualizarCooperadosLocalAsync();
             };
-            _cpfCacheRefreshTimer.Start();
+            _cooperadosSyncTimer.Start();
         }
 
-        private async Task AtualizarCpfCacheLocalAsync()
+        private async Task AtualizarCooperadosLocalAsync()
         {
-            if (_cpfCacheSyncInProgress)
+            if (_cooperadosSyncInProgress)
                 return;
 
-            _cpfCacheSyncInProgress = true;
+            _cooperadosSyncInProgress = true;
             try
             {
                 if (_config == null)
@@ -873,35 +865,19 @@ namespace BiometricSystem.Forms
                 if (string.IsNullOrWhiteSpace(tursoUrl) || string.IsNullOrWhiteSpace(authToken))
                     return;
 
-                var cpfs = database.BuscarCpfsCache();
-                if (cpfs.Count == 0)
-                    return;
-
                 var tursoHelper = new TursoCooperadoHelper(tursoUrl, authToken);
-                foreach (var cpf in cpfs)
-                {
-                    var resultado = await tursoHelper.TryGetCooperadoPorCpfAsync(cpf);
-                    if (!resultado.Success)
-                        break;
-
-                    if (resultado.Cooperado != null)
-                    {
-                        database.SalvarCooperadoCpfCache(
-                            resultado.Cooperado.Id,
-                            resultado.Cooperado.Nome,
-                            cpf,
-                            resultado.Cooperado.ProducaoPorCpf ?? string.Empty
-                        );
-                    }
-                }
+                var cooperadosColumns = await tursoHelper.GetCooperadosColumnsAsync();
+                var cooperadosRows = await tursoHelper.GetCooperadosRawAsync();
+                if (cooperadosColumns.Count > 0)
+                    database.SalvarCooperadosEmLote(cooperadosRows, cooperadosColumns);
             }
             catch (Exception ex)
             {
-                LogToFile($"❌ Erro ao atualizar cache CPF: {ex.Message}");
+                LogToFile($"❌ Erro ao atualizar cooperados local: {ex.Message}");
             }
             finally
             {
-                _cpfCacheSyncInProgress = false;
+                _cooperadosSyncInProgress = false;
             }
         }
 
@@ -963,34 +939,29 @@ namespace BiometricSystem.Forms
                             cooperadoId = resultado.Cooperado.Id;
                             cooperadoNome = resultado.Cooperado.Nome;
                             producaoPorCpf = resultado.Cooperado.ProducaoPorCpf;
-                            database.SalvarCooperadoCpfCache(cooperadoId, cooperadoNome, cpf, producaoPorCpf ?? string.Empty);
-                            LogToFile($"✅ CPF atualizado no cache local (Turso): {cpf}");
+                            LogToFile($"✅ CPF atualizado a partir do Turso: {cpf}");
                         }
                     }
                 }
 
                 if (!tursoOk && tursoConsultado)
                 {
-                    LogToFile("⚠️ Turso indisponível, usando cache local");
+                    LogToFile("⚠️ Turso indisponível, usando banco local");
                 }
 
                 if (!tursoOk)
                 {
-                    var cache = database.BuscarCooperadoCpfCache(cpf);
-                    var ttl = TimeSpan.FromMinutes(ObterCpfCacheTtlMinutes());
-                    bool cacheVigente = cache.HasValue && cache.Value.LastSyncTime.HasValue
-                        && (DateTime.UtcNow - cache.Value.LastSyncTime.Value) <= ttl;
-
-                    if (!cacheVigente)
+                    var local = database.BuscarCooperadoLocalPorCpf(cpf);
+                    if (!local.HasValue)
                     {
-                        lblStatus.Text = "⚠️ CPF sem cache válido";
+                        lblStatus.Text = "⚠️ CPF nao encontrado no banco local";
                         return;
                     }
 
-                    cooperadoId = cache.Value.CooperadoId;
-                    cooperadoNome = cache.Value.Nome;
-                    producaoPorCpf = cache.Value.ProducaoPorCpf;
-                    LogToFile($"📂 CPF carregado do cache local: {cpf}");
+                    cooperadoId = local.Value.CooperadoId;
+                    cooperadoNome = local.Value.Nome;
+                    producaoPorCpf = local.Value.ProducaoPorCpf;
+                    LogToFile($"📂 CPF carregado do banco local: {cpf}");
                 }
 
                 if (!string.Equals(producaoPorCpf, "SIM", StringComparison.OrdinalIgnoreCase))
@@ -1011,7 +982,7 @@ namespace BiometricSystem.Forms
                     return;
                 }
 
-                RegistrarProducao(cooperadoId, cooperadoNome);
+                await RegistrarProducaoAsync(cooperadoId, cooperadoNome);
                 AtualizarCpfTexto(string.Empty);
                 txtCpf.Focus();
             }
@@ -1115,6 +1086,8 @@ namespace BiometricSystem.Forms
                     LogToFile("[SINC-INICIAL] ⚠️ Timeout ao obter diagnóstico do Turso (5s)");
                 }
                 
+                int totalBiometrias = 0;
+
                 // ⏱️ Timeout de 30 segundos para evitar travamento
                 var downloadTask = tursoHelper.BaixarTodasBiometriasParaSincAsync();
                 var timeoutTask = Task.Delay(30000);
@@ -1130,32 +1103,54 @@ namespace BiometricSystem.Forms
                         else
                         { syncForm.SetWarning("Timeout ao baixar biometrias. Usando cache local."); syncForm.Refresh(); }
                     }
-                    return;
                 }
-                
-                var biometrias = await downloadTask;
-
-                if (biometrias == null || biometrias.Count == 0)
+                else
                 {
-                    LogToFile("[SINC-INICIAL] ⚠️ Nenhuma biometria encontrada no Turso");
-                    if (syncForm != null)
+                    var biometrias = await downloadTask;
+
+                    if (biometrias == null || biometrias.Count == 0)
                     {
-                        if (InvokeRequired)
-                            Invoke(() => { syncForm.SetWarning("Nenhuma biometria encontrada no Turso."); syncForm.Refresh(); });
-                        else
-                        { syncForm.SetWarning("Nenhuma biometria encontrada no Turso."); syncForm.Refresh(); }
+                        LogToFile("[SINC-INICIAL] ⚠️ Nenhuma biometria encontrada no Turso");
+                        if (syncForm != null)
+                        {
+                            if (InvokeRequired)
+                                Invoke(() => { syncForm.SetWarning("Nenhuma biometria encontrada no Turso."); syncForm.Refresh(); });
+                            else
+                            { syncForm.SetWarning("Nenhuma biometria encontrada no Turso."); syncForm.Refresh(); }
+                        }
                     }
-                    return;
+                    else
+                    {
+                        totalBiometrias = await database.SalvarBiometriasEmLoteAsync(biometrias);
+                        LogToFile($"[SINC-INICIAL] ✅ {totalBiometrias} biometrias baixadas do Turso");
+                        if (syncForm != null)
+                        {
+                            if (InvokeRequired)
+                                Invoke(() => { syncForm.SetSuccess(totalBiometrias); syncForm.Refresh(); });
+                            else
+                            { syncForm.SetSuccess(totalBiometrias); syncForm.Refresh(); }
+                        }
+                    }
                 }
 
-                int total = await database.SalvarBiometriasEmLoteAsync(biometrias);
-                LogToFile($"[SINC-INICIAL] ✅ {total} biometrias baixadas do Turso");
-                if (syncForm != null)
+                try
                 {
-                    if (InvokeRequired)
-                        Invoke(() => { syncForm.SetSuccess(total); syncForm.Refresh(); });
+                    LogToFile("[SINC-INICIAL] ⏳ Sincronizando tabela cooperados para o banco local...");
+                    var cooperadosColumns = await tursoHelper.GetCooperadosColumnsAsync();
+                    var cooperadosRows = await tursoHelper.GetCooperadosRawAsync();
+                    if (cooperadosColumns.Count > 0)
+                    {
+                        var totalCooperados = database.SalvarCooperadosEmLote(cooperadosRows, cooperadosColumns);
+                        LogToFile($"[SINC-INICIAL] ✅ {totalCooperados} cooperado(s) sincronizados para o banco local");
+                    }
                     else
-                    { syncForm.SetSuccess(total); syncForm.Refresh(); }
+                    {
+                        LogToFile("[SINC-INICIAL] ⚠️ Schema de cooperados nao disponivel");
+                    }
+                }
+                catch (Exception exCoop)
+                {
+                    LogToFile($"[SINC-INICIAL] ⚠️ Falha ao sincronizar cooperados: {exCoop.Message}");
                 }
             }
             catch (Exception ex)
@@ -1277,7 +1272,7 @@ namespace BiometricSystem.Forms
                 if (matchedCooperadoId != null)
                 {
                     LogToFile($"✅ Digital identificada: {matchedCooperadoNome}");
-                    RegistrarProducao(matchedCooperadoId, matchedCooperadoNome ?? "Cooperado");
+                    await RegistrarProducaoAsync(matchedCooperadoId, matchedCooperadoNome ?? "Cooperado");
                 }
                 else
                 {
@@ -1388,7 +1383,7 @@ namespace BiometricSystem.Forms
             AgendarLimpezaPainel();
         }
 
-        private void RegistrarProducao(string cooperadoId, string cooperadoNome)
+        private async Task RegistrarProducaoAsync(string cooperadoId, string cooperadoNome)
         {
             if (string.IsNullOrWhiteSpace(selectedSetor))
             {
@@ -1396,6 +1391,9 @@ namespace BiometricSystem.Forms
                 ExibirAvisoSetorNoPainel();
                 return;
             }
+
+            if (!await VerificarStatusCooperadoAtivoAsync(cooperadoId, cooperadoNome))
+                return;
 
             // Decidir o tipo da proxima producao com base na tolerancia e plantao noturno
             string tipoRegistro = database.DecidirTipoProximoPonto(cooperadoId, 14, 16);
@@ -1476,6 +1474,79 @@ namespace BiometricSystem.Forms
                 lblSimulador.ForeColor = System.Drawing.Color.FromArgb(180, 0, 0);
                 AgendarLimpezaPainel();
             }
+        }
+
+        private static bool StatusEhAtivo(string? status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+                return false;
+
+            var normalized = status.Trim().ToUpperInvariant();
+            return normalized == "ATIVO" || normalized == "ACTIVE" || normalized == "TRUE" || normalized == "1";
+        }
+
+        private async Task<bool> VerificarStatusCooperadoAtivoAsync(string cooperadoId, string cooperadoNome)
+        {
+            var statusLocal = database.BuscarStatusCooperadoLocal(cooperadoId);
+            if (!string.IsNullOrWhiteSpace(statusLocal))
+            {
+                if (StatusEhAtivo(statusLocal))
+                    return true;
+
+                ExibirBloqueioStatus(cooperadoNome, statusLocal);
+                return false;
+            }
+
+            var statusTurso = await BuscarStatusCooperadoNoTursoAsync(cooperadoId);
+            if (!string.IsNullOrWhiteSpace(statusTurso))
+            {
+                if (StatusEhAtivo(statusTurso))
+                    return true;
+
+                ExibirBloqueioStatus(cooperadoNome, statusTurso);
+                return false;
+            }
+
+            ExibirBloqueioStatusIndisponivel(cooperadoNome);
+            return false;
+        }
+
+        private async Task<string?> BuscarStatusCooperadoNoTursoAsync(string cooperadoId)
+        {
+            if (_config == null)
+                return null;
+
+            var tursoUrl = _config["TursoDb:Url"] ?? string.Empty;
+            var authToken = _config["TursoDb:AuthToken"] ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(tursoUrl) || string.IsNullOrWhiteSpace(authToken))
+                return null;
+
+            var tursoHelper = new TursoCooperadoHelper(tursoUrl, authToken);
+            var resultado = await tursoHelper.TryGetCooperadoStatusByIdAsync(cooperadoId);
+            return resultado.Success ? resultado.Status : null;
+        }
+
+        private void ExibirBloqueioStatus(string cooperadoNome, string? status)
+        {
+            var statusText = string.IsNullOrWhiteSpace(status) ? "INATIVO" : status.Trim().ToUpperInvariant();
+            lblStatus.Text = $"⛔ Status {statusText} - {cooperadoNome}";
+            panelSimulador.BackColor = System.Drawing.Color.FromArgb(255, 230, 230);
+            lblSimulador.Text = $"{cooperadoNome}\nStatus: {statusText}\nProdução bloqueada.";
+            lblSimulador.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            lblSimulador.ForeColor = System.Drawing.Color.FromArgb(180, 0, 0);
+            lblSimulador.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            AgendarLimpezaPainel();
+        }
+
+        private void ExibirBloqueioStatusIndisponivel(string cooperadoNome)
+        {
+            lblStatus.Text = $"⚠️ Status indisponível - {cooperadoNome}";
+            panelSimulador.BackColor = System.Drawing.Color.FromArgb(255, 245, 230);
+            lblSimulador.Text = $"{cooperadoNome}\nStatus indisponível no momento.\nTente novamente.";
+            lblSimulador.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            lblSimulador.ForeColor = System.Drawing.Color.FromArgb(200, 100, 0);
+            lblSimulador.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            AgendarLimpezaPainel();
         }
 
         /// <summary>

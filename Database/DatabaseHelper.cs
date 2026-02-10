@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Linq;
 using BiometricSystem.Models;
 
 namespace BiometricSystem.Database
@@ -174,16 +175,9 @@ namespace BiometricSystem.Database
                 using var cmdSetores = new SQLiteCommand(createSetoresTable, connection);
                 cmdSetores.ExecuteNonQuery();
 
-                // Tabela de cache de cooperados para producao por CPF
-                string createCooperadosCpfCacheTable = @"CREATE TABLE IF NOT EXISTS CooperadosCpfCache (
-                    Cpf TEXT PRIMARY KEY,
-                    CooperadoId TEXT,
-                    Nome TEXT,
-                    ProducaoPorCpf TEXT,
-                    LastSyncTime TEXT
-                )";
-                using var cmdCooperadosCpfCache = new SQLiteCommand(createCooperadosCpfCacheTable, connection);
-                cmdCooperadosCpfCache.ExecuteNonQuery();
+                // Remover caches legados (agora le diretamente da tabela cooperados)
+                DropTableIfExists(connection, "CooperadosCpfCache");
+                DropTableIfExists(connection, "CooperadosStatusCache");
 
                 // Tabela de Employees (legado/compatibilidade)
                 string createEmployeesTable = @"CREATE TABLE IF NOT EXISTS Employees (
@@ -238,7 +232,8 @@ namespace BiometricSystem.Database
                 CreateIndexIfNotExists(connection, "idx_pontos_synced", "Pontos", "SyncedToTurso");
                 CreateIndexIfNotExists(connection, "idx_pontos_timestamp", "Pontos", "Timestamp");
                 CreateIndexIfNotExists(connection, "idx_setores_hospital", "Setores", "HospitalId");
-                CreateIndexIfNotExists(connection, "idx_cooperados_cpf_cache", "CooperadosCpfCache", "Cpf");
+                CreateIndexIfNotExists(connection, "idx_cooperados_cpf", "cooperados", "cpf");
+                CreateIndexIfNotExists(connection, "idx_cooperados_id", "cooperados", "id");
                 CreateIndexIfNotExists(connection, "idx_employees_active", "Employees", "IsActive");
                 CreateIndexIfNotExists(connection, "idx_employees_cpf", "Employees", "CPF");
                 CreateIndexIfNotExists(connection, "idx_employees_synced", "Employees", "SyncedToCloud");
@@ -404,6 +399,17 @@ namespace BiometricSystem.Database
             try
             {
                 string query = $"DROP INDEX IF EXISTS {indexName}";
+                using var cmd = new SQLiteCommand(query, connection);
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* Ignorar */ }
+        }
+
+        private void DropTableIfExists(SQLiteConnection connection, string tableName)
+        {
+            try
+            {
+                string query = $"DROP TABLE IF EXISTS {tableName}";
                 using var cmd = new SQLiteCommand(query, connection);
                 cmd.ExecuteNonQuery();
             }
@@ -1232,49 +1238,24 @@ namespace BiometricSystem.Database
 
         #endregion
 
-        #region Cooperados CPF Cache
+        #region Cooperados Local
 
-        public void SalvarCooperadoCpfCache(string cooperadoId, string nome, string cpf, string producaoPorCpf)
+        public (string CooperadoId, string Nome, string ProducaoPorCpf, string Status)? BuscarCooperadoLocalPorCpf(string cpf)
         {
             try
             {
+                var cpfNormalizado = NormalizarCpf(cpf);
+                if (string.IsNullOrWhiteSpace(cpfNormalizado))
+                    return null;
+
                 using var connection = new SQLiteConnection(connectionString);
                 connection.Open();
 
-                string query = @"
-                    INSERT INTO CooperadosCpfCache (Cpf, CooperadoId, Nome, ProducaoPorCpf, LastSyncTime)
-                    VALUES (@Cpf, @CooperadoId, @Nome, @ProducaoPorCpf, @LastSyncTime)
-                    ON CONFLICT(Cpf) DO UPDATE SET
-                        CooperadoId = excluded.CooperadoId,
-                        Nome = excluded.Nome,
-                        ProducaoPorCpf = excluded.ProducaoPorCpf,
-                        LastSyncTime = excluded.LastSyncTime
-                ";
-
+                string query = @"SELECT id, name, producao_por_cpf, status FROM cooperados
+                                 WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = @Cpf
+                                 LIMIT 1";
                 using var cmd = new SQLiteCommand(query, connection);
-                cmd.Parameters.AddWithValue("@Cpf", cpf ?? string.Empty);
-                cmd.Parameters.AddWithValue("@CooperadoId", cooperadoId ?? string.Empty);
-                cmd.Parameters.AddWithValue("@Nome", nome ?? string.Empty);
-                cmd.Parameters.AddWithValue("@ProducaoPorCpf", producaoPorCpf ?? string.Empty);
-                cmd.Parameters.AddWithValue("@LastSyncTime", DateTime.UtcNow.ToString("O"));
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Erro ao salvar cache CPF: {ex.Message}");
-            }
-        }
-
-        public (string CooperadoId, string Nome, string ProducaoPorCpf, DateTime? LastSyncTime)? BuscarCooperadoCpfCache(string cpf)
-        {
-            try
-            {
-                using var connection = new SQLiteConnection(connectionString);
-                connection.Open();
-
-                string query = @"SELECT CooperadoId, Nome, ProducaoPorCpf, LastSyncTime FROM CooperadosCpfCache WHERE Cpf = @Cpf LIMIT 1";
-                using var cmd = new SQLiteCommand(query, connection);
-                cmd.Parameters.AddWithValue("@Cpf", cpf ?? string.Empty);
+                cmd.Parameters.AddWithValue("@Cpf", cpfNormalizado);
 
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
@@ -1282,51 +1263,289 @@ namespace BiometricSystem.Database
                     string cooperadoId = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
                     string nome = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
                     string producaoPorCpf = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
-                    DateTime? lastSync = null;
-                    if (!reader.IsDBNull(3))
-                    {
-                        if (DateTime.TryParse(reader.GetString(3), out var parsed))
-                        {
-                            lastSync = parsed;
-                        }
-                    }
-
-                    return (cooperadoId, nome, producaoPorCpf, lastSync);
+                    string status = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
+                    return (cooperadoId, nome, producaoPorCpf, status);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Erro ao buscar cache CPF: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Erro ao buscar cooperado local por CPF: {ex.Message}");
             }
 
             return null;
         }
 
-        public List<string> BuscarCpfsCache()
+        public string? BuscarStatusCooperadoLocal(string cooperadoId)
         {
-            var cpfs = new List<string>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(cooperadoId))
+                    return null;
+
+                using var connection = new SQLiteConnection(connectionString);
+                connection.Open();
+
+                string query = "SELECT status FROM cooperados WHERE id = @Id LIMIT 1";
+                using var cmd = new SQLiteCommand(query, connection);
+                cmd.Parameters.AddWithValue("@Id", cooperadoId);
+
+                var result = cmd.ExecuteScalar();
+                return result?.ToString();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Erro ao buscar status local do cooperado: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static string NormalizarCpf(string cpf)
+        {
+            if (string.IsNullOrWhiteSpace(cpf))
+                return string.Empty;
+
+            var digits = cpf.Where(char.IsDigit).ToArray();
+            return new string(digits);
+        }
+
+        #endregion
+
+        #region Cooperados Local
+
+        public int SalvarCooperadosEmLote(List<Dictionary<string, object>> rows, List<(string Name, string Type, bool IsPrimaryKey)> columns)
+        {
+            var columnsClean = columns
+                .Where(c => !string.IsNullOrWhiteSpace(c.Name))
+                .ToList();
+
+            if (columnsClean.Count == 0)
+                return 0;
+
             try
             {
                 using var connection = new SQLiteConnection(connectionString);
                 connection.Open();
 
-                string query = "SELECT Cpf FROM CooperadosCpfCache";
-                using var cmd = new SQLiteCommand(query, connection);
-                using var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                CriarOuAtualizarTabelaCooperados(connection, columnsClean);
+
+                if (rows == null || rows.Count == 0)
+                    return 0;
+
+                var columnNames = columnsClean.Select(c => c.Name).ToList();
+                var insertColumnsSql = string.Join(", ", columnNames.Select(QuoteIdentifier));
+                var placeholders = string.Join(", ", columnNames.Select((_, i) => $"@p{i}"));
+
+                var pkColumns = columnsClean.Where(c => c.IsPrimaryKey).Select(c => c.Name).ToList();
+                var nonPkColumns = columnNames.Where(c => !pkColumns.Contains(c, StringComparer.OrdinalIgnoreCase)).ToList();
+
+                string upsertSql = string.Empty;
+                string insertPrefix = "INSERT INTO";
+                if (pkColumns.Count > 0 && nonPkColumns.Count > 0)
                 {
-                    if (!reader.IsDBNull(0))
+                    var conflictCols = string.Join(", ", pkColumns.Select(QuoteIdentifier));
+                    var updateSet = string.Join(", ", nonPkColumns.Select(c => $"{QuoteIdentifier(c)} = excluded.{QuoteIdentifier(c)}"));
+                    upsertSql = $" ON CONFLICT({conflictCols}) DO UPDATE SET {updateSet}";
+                }
+                else
+                {
+                    insertPrefix = "INSERT OR REPLACE INTO";
+                }
+
+                int total = 0;
+                using var transaction = connection.BeginTransaction();
+                foreach (var row in rows)
+                {
+                    // Busca registro local pelo id (ou cpf)
+                    object? idValue = row.ContainsKey("id") ? row["id"] : null;
+                    object? cpfValue = row.ContainsKey("cpf") ? row["cpf"] : null;
+                    Dictionary<string, object>? local = null;
+                    if (idValue != null)
                     {
-                        cpfs.Add(reader.GetString(0));
+                        using var cmdLocal = new SQLiteCommand("SELECT * FROM cooperados WHERE id = @id LIMIT 1", connection, transaction);
+                        cmdLocal.Parameters.AddWithValue("@id", idValue);
+                        using var reader = cmdLocal.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            local = new Dictionary<string, object>();
+                            for (int i = 0; i < reader.FieldCount; i++)
+                                local[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                        }
+                    }
+                    else if (cpfValue != null)
+                    {
+                        using var cmdLocal = new SQLiteCommand("SELECT * FROM cooperados WHERE cpf = @cpf LIMIT 1", connection, transaction);
+                        cmdLocal.Parameters.AddWithValue("@cpf", cpfValue);
+                        using var reader = cmdLocal.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            local = new Dictionary<string, object>();
+                            for (int i = 0; i < reader.FieldCount; i++)
+                                local[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                        }
+                    }
+
+                    bool precisaAtualizar = false;
+                    if (local != null)
+                    {
+                        // Compara campos relevantes
+                        foreach (var colName in columnNames)
+                        {
+                            var novo = row.ContainsKey(colName) ? row[colName]?.ToString() ?? string.Empty : string.Empty;
+                            var atual = local.ContainsKey(colName) ? local[colName]?.ToString() ?? string.Empty : string.Empty;
+                            if (novo != atual)
+                            {
+                                precisaAtualizar = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Não existe local, precisa inserir
+                        precisaAtualizar = true;
+                    }
+
+                    if (precisaAtualizar)
+                    {
+                        var sql = $"{insertPrefix} cooperados ({insertColumnsSql}) VALUES ({placeholders}){upsertSql}";
+                        using var cmd = new SQLiteCommand(sql, connection, transaction);
+                        for (int i = 0; i < columnNames.Count; i++)
+                        {
+                            var colName = columnNames[i];
+                            if (row != null && row.TryGetValue(colName, out var value))
+                                cmd.Parameters.AddWithValue($"@p{i}", NormalizarValorSql(value));
+                            else
+                                cmd.Parameters.AddWithValue($"@p{i}", DBNull.Value);
+                        }
+                        cmd.ExecuteNonQuery();
+                        total++;
                     }
                 }
+                transaction.Commit();
+                return total;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Erro ao listar CPFs do cache: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Erro ao salvar cooperados localmente: {ex.Message}");
+                return 0;
+            }
+        }
+
+        private void CriarOuAtualizarTabelaCooperados(SQLiteConnection connection, List<(string Name, string Type, bool IsPrimaryKey)> columns)
+        {
+            if (!TabelaExiste(connection, "cooperados"))
+            {
+                var colDefs = columns.Select(c =>
+                {
+                    var type = NormalizarTipoSql(c.Type);
+                    var pk = c.IsPrimaryKey ? " PRIMARY KEY" : string.Empty;
+                    return $"{QuoteIdentifier(c.Name)} {type}{pk}";
+                });
+
+                var createSql = $"CREATE TABLE IF NOT EXISTS cooperados ({string.Join(", ", colDefs)})";
+                using var cmd = new SQLiteCommand(createSql, connection);
+                cmd.ExecuteNonQuery();
+                DeduplicarCooperadosPorId(connection);
+                CreateUniqueIndexIfPossible(connection, "cooperados", "id", "idx_cooperados_id_unique");
+                return;
             }
 
-            return cpfs;
+            foreach (var column in columns)
+            {
+                var type = NormalizarTipoSql(column.Type);
+                EnsureColumnExists(connection, "cooperados", column.Name, type);
+            }
+
+            DeduplicarCooperadosPorId(connection);
+            CreateUniqueIndexIfPossible(connection, "cooperados", "id", "idx_cooperados_id_unique");
+        }
+
+        private bool TabelaExiste(SQLiteConnection connection, string tableName)
+        {
+            var sql = "SELECT name FROM sqlite_master WHERE type='table' AND name=@name";
+            using var cmd = new SQLiteCommand(sql, connection);
+            cmd.Parameters.AddWithValue("@name", tableName);
+            var result = cmd.ExecuteScalar();
+            return result != null && !string.IsNullOrWhiteSpace(result.ToString());
+        }
+
+        private static string NormalizarTipoSql(string? type)
+        {
+            return string.IsNullOrWhiteSpace(type) ? "TEXT" : type.Trim();
+        }
+
+        private static string QuoteIdentifier(string identifier)
+        {
+            return "\"" + identifier.Replace("\"", "\"\"") + "\"";
+        }
+
+        private void CreateUniqueIndexIfPossible(SQLiteConnection connection, string tableName, string columnName, string indexName)
+        {
+            try
+            {
+                if (!ColumnExists(connection, tableName, columnName))
+                    return;
+
+                string query = $"CREATE UNIQUE INDEX IF NOT EXISTS {indexName} ON {tableName}({columnName})";
+                using var cmd = new SQLiteCommand(query, connection);
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* Ignorar */ }
+        }
+
+        private void DeduplicarCooperadosPorId(SQLiteConnection connection)
+        {
+            try
+            {
+                if (!TabelaExiste(connection, "cooperados") || !ColumnExists(connection, "cooperados", "id"))
+                    return;
+
+                string query = @"
+                    DELETE FROM cooperados
+                    WHERE rowid NOT IN (
+                        SELECT MIN(rowid) FROM cooperados
+                        WHERE id IS NOT NULL AND id != ''
+                        GROUP BY id
+                    )
+                    AND id IS NOT NULL AND id != ''
+                ";
+                using var cmd = new SQLiteCommand(query, connection);
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* Ignorar */ }
+        }
+
+        private bool ColumnExists(SQLiteConnection connection, string tableName, string columnName)
+        {
+            try
+            {
+                string checkQuery = $"PRAGMA table_info({tableName})";
+                using var checkCmd = new SQLiteCommand(checkQuery, connection);
+                using var reader = checkCmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    if (reader[1].ToString()?.Equals(columnName, StringComparison.OrdinalIgnoreCase) == true)
+                        return true;
+                }
+            }
+            catch { /* Ignorar */ }
+
+            return false;
+        }
+
+        private static object NormalizarValorSql(object? value)
+        {
+            if (value == null)
+                return DBNull.Value;
+
+            if (value is bool b)
+                return b ? 1 : 0;
+
+            if (value is DateTime dt)
+                return dt.ToString("O");
+
+            return value;
         }
 
         #endregion

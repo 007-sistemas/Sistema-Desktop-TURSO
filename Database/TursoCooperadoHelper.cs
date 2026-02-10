@@ -15,6 +15,9 @@ namespace BiometricSystem.Database
         private Dictionary<string, (string Name, string Type)>? _biometriasColumnsCache;
         private DateTime _biometriasColumnsCacheAt = DateTime.MinValue;
         private static readonly TimeSpan BiometriasColumnsCacheTtl = TimeSpan.FromMinutes(10);
+        private List<(string Name, string Type, bool IsPrimaryKey)>? _cooperadosColumnsCache;
+        private DateTime _cooperadosColumnsCacheAt = DateTime.MinValue;
+        private static readonly TimeSpan CooperadosColumnsCacheTtl = TimeSpan.FromMinutes(10);
 
         public TursoCooperadoHelper(string tursoUrl, string authToken)
         {
@@ -31,6 +34,7 @@ namespace BiometricSystem.Database
             public DateTime? CriadoEm { get; set; }
             public bool Ativo { get; set; } = true;
             public string? ProducaoPorCpf { get; set; }
+            public string? Status { get; set; }
 
             public override string ToString() => $"{Nome}";
         }
@@ -94,6 +98,7 @@ namespace BiometricSystem.Database
                     var cooperados = new List<Cooperado>();
                     foreach (var row in results)
                     {
+                        var status = GetNullableString(row, "status", "Status");
                         cooperados.Add(new Cooperado
                         {
                             Id = GetString(row, "id"),
@@ -102,8 +107,9 @@ namespace BiometricSystem.Database
                             Email = GetNullableString(row, "email", "Email"),
                             Telefone = GetNullableString(row, "phone", "telefone", "Telefone"),  // "phone" é o correto
                             CriadoEm = GetNullableDate(row, "created_at", "criado_em"),
-                            Ativo = GetNullableBool(row, "status", "ativo") ?? true,
-                            ProducaoPorCpf = GetNullableString(row, "producao_por_cpf", "ProducaoPorCpf")
+                            Ativo = ParseStatusToBool(status) ?? GetNullableBool(row, "status", "ativo") ?? true,
+                            ProducaoPorCpf = GetNullableString(row, "producao_por_cpf", "ProducaoPorCpf"),
+                            Status = status
                         });
                     }
 
@@ -134,6 +140,7 @@ namespace BiometricSystem.Database
                             System.Diagnostics.Debug.WriteLine($"[TursoCooperadoHelper] Colunas disponíveis: {colNames}");
                         }
 
+                        var status = GetNullableString(row, "status", "Status");
                         cooperados.Add(new Cooperado
                         {
                             Id = GetString(row, "id"),
@@ -142,8 +149,9 @@ namespace BiometricSystem.Database
                             Email = GetNullableString(row, "email", "Email"),
                             Telefone = GetNullableString(row, "phone", "telefone", "Telefone"),
                             CriadoEm = GetNullableDate(row, "created_at", "criado_em"),
-                            Ativo = GetNullableBool(row, "status", "ativo") ?? true,
-                            ProducaoPorCpf = GetNullableString(row, "producao_por_cpf", "ProducaoPorCpf")
+                            Ativo = ParseStatusToBool(status) ?? GetNullableBool(row, "status", "ativo") ?? true,
+                            ProducaoPorCpf = GetNullableString(row, "producao_por_cpf", "ProducaoPorCpf"),
+                            Status = status
                         });
                     }
 
@@ -263,6 +271,7 @@ namespace BiometricSystem.Database
                 if (results != null && results.Count > 0)
                 {
                     var row = results[0];
+                    var status = GetNullableString(row, "status", "Status");
                     var cooperado = new Cooperado
                     {
                         Id = GetString(row, "id"),
@@ -271,8 +280,9 @@ namespace BiometricSystem.Database
                         Email = GetNullableString(row, "email", "Email"),
                         Telefone = GetNullableString(row, "phone", "telefone", "Telefone"),
                         CriadoEm = GetNullableDate(row, "created_at", "criado_em"),
-                        Ativo = GetNullableBool(row, "status", "ativo") ?? true,
-                        ProducaoPorCpf = GetNullableString(row, "producao_por_cpf", "ProducaoPorCpf")
+                        Ativo = ParseStatusToBool(status) ?? GetNullableBool(row, "status", "ativo") ?? true,
+                        ProducaoPorCpf = GetNullableString(row, "producao_por_cpf", "ProducaoPorCpf"),
+                        Status = status
                     };
                     return (true, cooperado);
                 }
@@ -290,6 +300,66 @@ namespace BiometricSystem.Database
         {
             var digits = cpf.Where(char.IsDigit).ToArray();
             return new string(digits);
+        }
+
+        public async Task<List<Dictionary<string, object>>> GetCooperadosRawAsync()
+        {
+            return await _tursoConnection.ExecuteQueryAsync("SELECT * FROM cooperados");
+        }
+
+        public async Task<List<(string Name, string Type, bool IsPrimaryKey)>> GetCooperadosColumnsAsync()
+        {
+            if (_cooperadosColumnsCache != null && (DateTime.UtcNow - _cooperadosColumnsCacheAt) < CooperadosColumnsCacheTtl)
+                return _cooperadosColumnsCache;
+
+            var columns = new List<(string Name, string Type, bool IsPrimaryKey)>();
+            try
+            {
+                var rows = await _tursoConnection.ExecuteQueryAsync("PRAGMA table_info(cooperados)");
+                foreach (var row in rows)
+                {
+                    var name = GetString(row, "name");
+                    if (string.IsNullOrWhiteSpace(name))
+                        continue;
+
+                    var type = GetNullableString(row, "type") ?? string.Empty;
+                    var pk = GetInt(row, "pk") > 0;
+                    columns.Add((name, type, pk));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TursoCooperadoHelper] Erro ao ler schema de cooperados: {ex.Message}");
+            }
+
+            _cooperadosColumnsCache = columns;
+            _cooperadosColumnsCacheAt = DateTime.UtcNow;
+            return columns;
+        }
+
+        public async Task<(bool Success, string? Status)> TryGetCooperadoStatusByIdAsync(string cooperadoId)
+        {
+            if (string.IsNullOrWhiteSpace(cooperadoId))
+                return (true, null);
+
+            try
+            {
+                var sql = "SELECT status FROM cooperados WHERE id = ? LIMIT 1";
+                var results = await _tursoConnection.ExecuteQueryAsync(sql, new object[] { cooperadoId });
+                if (results != null && results.Count > 0)
+                {
+                    var row = results[0];
+                    var status = GetNullableString(row, "status", "Status");
+                    return (true, status);
+                }
+
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TursoCooperadoHelper] TryGetCooperadoStatusByIdAsync falhou: {ex.Message}");
+                return (false, null);
+            }
         }
 
         public async Task<bool> SalvarBiometriaAsync(string cooperadoId, byte[] template, int fingerIndex = 0, string cooperadoNome = null)
@@ -737,6 +807,25 @@ namespace BiometricSystem.Database
                 if (row.TryGetValue(key, out var val) && val != null)
                     return val.ToString();
             }
+            return null;
+        }
+
+        private static bool? ParseStatusToBool(string? status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+                return null;
+
+            var normalized = status.Trim().ToUpperInvariant();
+            if (normalized == "ATIVO" || normalized == "ACTIVE")
+                return true;
+            if (normalized == "INATIVO" || normalized == "INACTIVE" || normalized == "SUSPENSO" || normalized == "SUSPENDED")
+                return false;
+
+            if (bool.TryParse(status, out var parsedBool))
+                return parsedBool;
+            if (int.TryParse(status, out var parsedInt))
+                return parsedInt != 0;
+
             return null;
         }
 
