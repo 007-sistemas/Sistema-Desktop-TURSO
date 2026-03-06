@@ -1,0 +1,408 @@
+[2026-01-27 01:12:38.073] 🏥 Buscando hospitais no NEON...
+[2026-01-27 01:12:39.669]    ✅ Conexão com NEON estabelecida
+[2026-01-27 01:12:39.669]    📝 Query SQL: SELECT id, nome, slug FROM hospitals ORDER BY nome LIMIT 100
+[2026-01-27 01:12:39.850]    🔍 Executando query...
+[2026-01-27 01:12:39.905]    🏥 Hospital #1: ID=3967c7dc-dbd0-4973-bb3c-915311cc06d4, Nome=COOPEN, Codigo=coopen
+[2026-01-27 01:12:39.906]    🏥 Hospital #2: ID=852535fa-d14b-43f7-a118-5096ef7ab867, Nome=HGWA, Codigo=hgwa
+[2026-01-27 01:12:39.906]    🏥 Hospital #3: ID=86de3a3a-d037-4b71-bf6f-c4371857ebec, Nome=HRC, Codigo=hrc
+[2026-01-27 01:12:39.907]    🏥 Hospital #4: ID=552477cc-fc66-4c3b-968f-56b39c5391f7, Nome=HRN, Codigo=hrn
+[2026-01-27 01:12:39.908]    🏥 Hospital #5: ID=d580d8f3-0e0f-4431-87c9-939536891094, Nome=HRVJ, Codigo=hrvj
+[2026-01-27 01:12:39.909]    ✅ Total: 5 hospitais encontrados
+[2026-01-27 01:12:46.145] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 01:12:46.146]    ✅ Conexão estabelecida
+[2026-01-27 01:12:46.146]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 01:12:46.316]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 01:12:46.316]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 01:12:46.318]    ✅ Total: 2 setores encontrados
+[2026-01-27 01:12:46.376]    💾 Setores salvos no cache local
+[2026-01-27 01:12:52.485] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 01:12:52.485] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 01:12:52.487] ✅ Biometrias retornadas: 0
+[2026-01-27 01:12:52.488] ⚠️ Lista de biometrias está vazia
+[2026-01-27 01:12:57.607] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 01:12:57.607] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 01:12:57.609] ✅ Biometrias retornadas: 0
+[2026-01-27 01:12:57.610] ⚠️ Lista de biometrias está vazia
+[2026-01-27 01:15:03.403] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 01:15:03.404] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 01:15:03.406] ✅ Biometrias retornadas: 1
+[2026-01-27 01:15:03.406] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 01:15:03.407]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 01:15:03.410]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 01:15:03.410] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 01:15:03.412]    Tipo de registro: ENTRADA (lógica tolerância/plantão)
+[2026-01-27 01:15:03.446]    ✅ Ponto registrado localmente com sucesso!
+[2026-01-27 01:15:03.491] ⏰ Agendando limpeza do painel em 5 segundos...
+[2026-01-27 01:15:03.494]    ℹ️ Disparando sincronização em background...
+[2026-01-27 01:15:03.495]    ℹ️ Sincronização disparada (método async)
+[2026-01-27 01:15:03.598] 🔄 [SYNC] Iniciando sincronização com NEON em background...
+[2026-01-27 01:15:03.603]    📊 Pontos não sincronizados: 1
+[2026-01-27 01:15:03.604]    📤 Sincronizando ponto: Gabriel Gomes da Silva Lima - ENTRADA
+[2026-01-27 01:15:03.606] 📤 Iniciando registro de ponto no NEON: Gabriel Gomes da Silva Lima - ENTRADA
+[2026-01-27 01:15:03.606]    SQL Insert ponto id=73b8e11f-3ec1-4796-9a36-f16582238527, codigo=73b8e11f, coop=af95c39d-88ba-4b1f-84e6-480eb5cd922e, tipo=ENTRADA, hosp=3967c7dc-dbd0-4973-bb3c-915311cc06d4, setor=2
+[2026-01-27 01:15:03.773]    ✅ Ponto registrado no NEON (rows affected: 1)
+[2026-01-27 01:15:03.805]    ✅ Ponto 73b8e11f-3ec1-4796-9a36-f16582238527 sincronizado com NEON
+[2026-01-27 01:15:03.809]    📊 Biometrias não sincronizadas: 1
+[2026-01-27 01:15:03.809]    📤 Sincronizando biometria: af95c39d-88ba-4b1f-84e6-480eb5cd922e
+[2026-01-27 01:15:04.010]    ✅ Biometria 321af67f-08c1-467d-9d9b-9a043bad09aa sincronizada com NEON
+[2026-01-27 01:15:04.011] ✅ [SYNC] Sincronização com NEON concluída
+[2026-01-27 01:15:08.496] ⏰ Limpando painel após 5 segundos
+[2026-01-27 01:15:08.500] ⏰ Painel limpo com sucesso
+[2026-01-27 01:17:40.954] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 01:17:42.069]    ✅ Conexão estabelecida
+[2026-01-27 01:17:42.070]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 01:17:42.222]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 01:17:42.223]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 01:17:42.224]    ✅ Total: 2 setores encontrados
+[2026-01-27 01:17:42.321]    💾 Setores salvos no cache local
+[2026-01-27 01:21:27.448] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 01:21:28.483]    ✅ Conexão estabelecida
+[2026-01-27 01:21:28.483]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 01:21:28.656]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 01:21:28.657]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 01:21:28.658]    ✅ Total: 2 setores encontrados
+[2026-01-27 01:21:28.758]    💾 Setores salvos no cache local
+[2026-01-27 08:29:23.015] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 08:29:24.730]    ✅ Conexão estabelecida
+[2026-01-27 08:29:24.731]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 08:29:25.047]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 08:29:25.048]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 08:29:25.049]    ✅ Total: 2 setores encontrados
+[2026-01-27 08:29:25.151]    💾 Setores salvos no cache local
+[2026-01-27 08:33:47.928] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 08:33:49.325]    ✅ Conexão estabelecida
+[2026-01-27 08:33:49.325]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 08:33:49.577]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 08:33:49.578]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 08:33:49.579]    ✅ Total: 2 setores encontrados
+[2026-01-27 08:33:49.656]    💾 Setores salvos no cache local
+[2026-01-27 08:42:23.258] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 08:42:25.595]    ✅ Conexão estabelecida
+[2026-01-27 08:42:25.596]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 08:42:25.906]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 08:42:25.907]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 08:42:25.909]    ✅ Total: 2 setores encontrados
+[2026-01-27 08:42:26.035]    💾 Setores salvos no cache local
+[2026-01-27 08:55:57.556] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 08:55:59.637]    ✅ Conexão estabelecida
+[2026-01-27 08:55:59.637]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 08:55:59.941]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 08:55:59.942]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 08:55:59.943]    ✅ Total: 2 setores encontrados
+[2026-01-27 08:56:00.075]    💾 Setores salvos no cache local
+[2026-01-27 08:59:09.844] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 08:59:11.628]    ✅ Conexão estabelecida
+[2026-01-27 08:59:11.629]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 08:59:11.948]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 08:59:11.949]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 08:59:11.950]    ✅ Total: 2 setores encontrados
+[2026-01-27 08:59:12.128]    💾 Setores salvos no cache local
+[2026-01-27 09:02:31.004] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 09:02:32.643]    ✅ Conexão estabelecida
+[2026-01-27 09:02:32.643]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 09:02:32.938]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 09:02:32.938]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 09:02:32.940]    ✅ Total: 2 setores encontrados
+[2026-01-27 09:02:33.020]    💾 Setores salvos no cache local
+[2026-01-27 09:08:37.486] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 09:08:39.147]    ✅ Conexão estabelecida
+[2026-01-27 09:08:39.148]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 09:08:39.384]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 09:08:39.385]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 09:08:39.387]    ✅ Total: 2 setores encontrados
+[2026-01-27 09:08:39.497]    💾 Setores salvos no cache local
+[2026-01-27 09:12:57.102] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 09:12:58.866]    ✅ Conexão estabelecida
+[2026-01-27 09:12:58.867]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 09:12:59.111]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 09:12:59.112]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 09:12:59.114]    ✅ Total: 2 setores encontrados
+[2026-01-27 09:12:59.264]    💾 Setores salvos no cache local
+[2026-01-27 09:24:21.575] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 09:24:23.053]    ✅ Conexão estabelecida
+[2026-01-27 09:24:23.054]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 09:24:23.295]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 09:24:23.296]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 09:24:23.297]    ✅ Total: 2 setores encontrados
+[2026-01-27 09:24:23.377]    💾 Setores salvos no cache local
+[2026-01-27 09:30:02.265] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 09:30:03.471]    ✅ Conexão estabelecida
+[2026-01-27 09:30:03.471]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 09:30:03.675]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 09:30:03.676]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 09:30:03.677]    ✅ Total: 2 setores encontrados
+[2026-01-27 09:30:03.746]    💾 Setores salvos no cache local
+[2026-01-27 09:30:58.462] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:30:58.462] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:30:58.468] ✅ Biometrias retornadas: 1
+[2026-01-27 09:30:58.468] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:30:58.469]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:30:58.528] ❌ Nenhuma biometria correspondente encontrada
+[2026-01-27 09:31:04.625] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:31:04.625] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:31:04.629] ✅ Biometrias retornadas: 1
+[2026-01-27 09:31:04.630] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:31:04.630]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:31:04.632] ❌ Nenhuma biometria correspondente encontrada
+[2026-01-27 09:31:12.896] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:31:12.897] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:31:12.901] ✅ Biometrias retornadas: 1
+[2026-01-27 09:31:12.901] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:31:12.902]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:31:12.905]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 09:31:12.905] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 09:31:12.973]    Tipo de registro: SAIDA (lógica tolerância/plantão)
+[2026-01-27 09:31:13.050]    ✅ Ponto registrado localmente com sucesso!
+[2026-01-27 09:31:13.141] ⏰ Agendando limpeza do painel em 5 segundos...
+[2026-01-27 09:31:13.144]    ℹ️ Disparando sincronização em background...
+[2026-01-27 09:31:13.145]    ℹ️ Sincronização disparada (método async)
+[2026-01-27 09:31:13.264] 🔄 [SYNC] Iniciando sincronização com NEON em background...
+[2026-01-27 09:31:13.441]    📊 Pontos não sincronizados: 1
+[2026-01-27 09:31:13.442]    📤 Sincronizando ponto: Gabriel Gomes da Silva Lima - SAIDA
+[2026-01-27 09:31:13.446] 📤 Iniciando registro de ponto no NEON: Gabriel Gomes da Silva Lima - SAIDA
+[2026-01-27 09:31:13.447]    SQL Insert ponto id=d29869ff-3484-4cde-bbdc-6de4a6811403, codigo=d29869ff, coop=af95c39d-88ba-4b1f-84e6-480eb5cd922e, tipo=SAIDA, hosp=3967c7dc-dbd0-4973-bb3c-915311cc06d4, setor=2
+[2026-01-27 09:31:13.561]    ✅ Ponto registrado no NEON (rows affected: 1)
+[2026-01-27 09:31:13.609]    ✅ Ponto d29869ff-3484-4cde-bbdc-6de4a6811403 sincronizado com NEON
+[2026-01-27 09:31:13.613]    📊 Biometrias não sincronizadas: 0
+[2026-01-27 09:31:13.614] ✅ [SYNC] Sincronização com NEON concluída
+[2026-01-27 09:31:18.148] ⏰ Limpando painel após 5 segundos
+[2026-01-27 09:31:18.153] ⏰ Painel limpo com sucesso
+[2026-01-27 09:31:21.417] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:31:21.418] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:31:21.421] ✅ Biometrias retornadas: 1
+[2026-01-27 09:31:21.422] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:31:21.422]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:31:21.425]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 09:31:21.425] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 09:31:21.428]    Tipo de registro: ENTRADA (lógica tolerância/plantão)
+[2026-01-27 09:31:21.502]    ✅ Ponto registrado localmente com sucesso!
+[2026-01-27 09:31:21.590] ⏰ Agendando limpeza do painel em 5 segundos...
+[2026-01-27 09:31:21.592]    ℹ️ Disparando sincronização em background...
+[2026-01-27 09:31:21.593]    ℹ️ Sincronização disparada (método async)
+[2026-01-27 09:31:21.703] 🔄 [SYNC] Iniciando sincronização com NEON em background...
+[2026-01-27 09:31:21.706]    📊 Pontos não sincronizados: 1
+[2026-01-27 09:31:21.706]    📤 Sincronizando ponto: Gabriel Gomes da Silva Lima - ENTRADA
+[2026-01-27 09:31:21.707] 📤 Iniciando registro de ponto no NEON: Gabriel Gomes da Silva Lima - ENTRADA
+[2026-01-27 09:31:21.707]    SQL Insert ponto id=f19ac985-ea63-4416-b245-c4058c3a9320, codigo=f19ac985, coop=af95c39d-88ba-4b1f-84e6-480eb5cd922e, tipo=ENTRADA, hosp=3967c7dc-dbd0-4973-bb3c-915311cc06d4, setor=2
+[2026-01-27 09:31:21.803]    ✅ Ponto registrado no NEON (rows affected: 1)
+[2026-01-27 09:31:21.821]    ✅ Ponto f19ac985-ea63-4416-b245-c4058c3a9320 sincronizado com NEON
+[2026-01-27 09:31:21.824]    📊 Biometrias não sincronizadas: 0
+[2026-01-27 09:31:21.825] ✅ [SYNC] Sincronização com NEON concluída
+[2026-01-27 09:31:26.604] ⏰ Limpando painel após 5 segundos
+[2026-01-27 09:31:26.609] ⏰ Painel limpo com sucesso
+[2026-01-27 09:31:28.794] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:31:28.795] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:31:28.799] ✅ Biometrias retornadas: 1
+[2026-01-27 09:31:28.799] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:31:28.799]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:31:28.805]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 09:31:28.805] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 09:31:28.809]    Tipo de registro: SAIDA (lógica tolerância/plantão)
+[2026-01-27 09:31:28.930] ❌ ERRO em OnFingerprintCaptured: Object reference not set to an instance of an object.
+[2026-01-27 09:31:28.960]    Stack:    at BiometricSystem.Forms.LoginForm.OnFingerprintCaptured(Object sender, Byte[] template) in C:\Users\PcGabriel\Downloads\Sistema Desktop\Forms\LoginForm.cs:line 555
+[2026-01-27 09:32:10.676] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 09:32:11.689]    ✅ Conexão estabelecida
+[2026-01-27 09:32:11.690]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 09:32:12.003]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 09:32:12.004]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 09:32:12.005]    ✅ Total: 2 setores encontrados
+[2026-01-27 09:32:12.228]    💾 Setores salvos no cache local
+[2026-01-27 09:32:31.378] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:32:31.379] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:32:31.384] ✅ Biometrias retornadas: 1
+[2026-01-27 09:32:31.385] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:32:31.385]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:32:31.391]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 09:32:31.392] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 09:32:31.397]    Tipo de registro: SAIDA (lógica tolerância/plantão)
+[2026-01-27 09:33:29.193] 🗑️ Todas as biometrias foram apagadas do NEON. Registros afetados: 1
+[2026-01-27 09:34:08.728] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:34:08.729] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:34:08.733] ✅ Biometrias retornadas: 0
+[2026-01-27 09:34:08.733] ⚠️ Lista de biometrias está vazia
+[2026-01-27 09:34:14.799] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:34:14.800] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:34:14.803] ✅ Biometrias retornadas: 0
+[2026-01-27 09:34:14.803] ⚠️ Lista de biometrias está vazia
+[2026-01-27 09:35:43.887] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:35:43.887] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:35:43.891] ✅ Biometrias retornadas: 1
+[2026-01-27 09:35:43.891] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:35:43.892]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:35:43.897]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 09:35:43.897] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 09:35:43.901]    Tipo de registro: SAIDA (lógica tolerância/plantão)
+[2026-01-27 09:48:53.653] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 09:48:55.283]    ✅ Conexão estabelecida
+[2026-01-27 09:48:55.284]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 09:48:55.505]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 09:48:55.505]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 09:48:55.507]    ✅ Total: 2 setores encontrados
+[2026-01-27 09:48:55.578]    💾 Setores salvos no cache local
+[2026-01-27 09:48:59.163] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:48:59.163] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:48:59.170] ✅ Biometrias retornadas: 1
+[2026-01-27 09:48:59.171] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:48:59.171]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:48:59.180]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 09:48:59.181] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 09:48:59.187]    Tipo de registro: ENTRADA (lógica tolerância/plantão)
+[2026-01-27 09:48:59.207]    ✅ Ponto registrado localmente com sucesso!
+[2026-01-27 09:48:59.411] ⏰ Agendando limpeza do painel em 5 segundos...
+[2026-01-27 09:48:59.426]    ℹ️ Disparando sincronização em background...
+[2026-01-27 09:48:59.427]    ℹ️ Sincronização disparada (método async)
+[2026-01-27 09:48:59.555] 🔄 [SYNC] Iniciando sincronização com NEON em background...
+[2026-01-27 09:48:59.578]    📊 Pontos não sincronizados: 1
+[2026-01-27 09:48:59.579]    📤 Sincronizando ponto: Gabriel Gomes da Silva Lima - ENTRADA
+[2026-01-27 09:48:59.584] 📤 Iniciando registro de ponto no NEON: Gabriel Gomes da Silva Lima - ENTRADA
+[2026-01-27 09:48:59.585]    SQL Insert ponto id=8cb43b64-cb37-4bd4-87c1-e610e36bf534, codigo=8cb43b64, coop=af95c39d-88ba-4b1f-84e6-480eb5cd922e, tipo=ENTRADA, hosp=3967c7dc-dbd0-4973-bb3c-915311cc06d4, setor=5
+[2026-01-27 09:48:59.748]    ✅ Ponto registrado no NEON (rows affected: 1)
+[2026-01-27 09:48:59.783]    ✅ Ponto 8cb43b64-cb37-4bd4-87c1-e610e36bf534 sincronizado com NEON
+[2026-01-27 09:48:59.791]    📊 Biometrias não sincronizadas: 1
+[2026-01-27 09:48:59.792]    📤 Sincronizando biometria: af95c39d-88ba-4b1f-84e6-480eb5cd922e
+[2026-01-27 09:49:00.036]    ✅ Biometria 95572cf9-85a8-44b3-ac4d-e614a2dad6ae sincronizada com NEON
+[2026-01-27 09:49:00.037] ✅ [SYNC] Sincronização com NEON concluída
+[2026-01-27 09:49:04.438] ⏰ Limpando painel após 5 segundos
+[2026-01-27 09:49:04.444] ⏰ Painel limpo com sucesso
+[2026-01-27 09:49:13.048] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 09:49:13.048] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 09:49:13.052] ✅ Biometrias retornadas: 1
+[2026-01-27 09:49:13.052] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 09:49:13.053]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 09:49:13.058]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 09:49:13.058] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 09:49:13.087]    Tipo de registro: SAIDA (lógica tolerância/plantão)
+[2026-01-27 09:49:13.244] ❌ ERRO em OnFingerprintCaptured: Object reference not set to an instance of an object.
+[2026-01-27 09:49:13.304]    Stack:    at BiometricSystem.Forms.LoginForm.OnFingerprintCaptured(Object sender, Byte[] template) in C:\Users\PcGabriel\Downloads\Sistema Desktop\Forms\LoginForm.cs:line 555
+[2026-01-27 10:45:31.857] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 10:45:33.592]    ✅ Conexão estabelecida
+[2026-01-27 10:45:33.627]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 10:45:33.965]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 10:45:33.966]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 10:45:33.967]    ✅ Total: 2 setores encontrados
+[2026-01-27 10:45:34.078]    💾 Setores salvos no cache local
+[2026-01-27 10:45:38.683] 🔍 OnFingerprintCaptured - Iniciando verificação LOCAL
+[2026-01-27 10:45:38.684] 📡 Buscando biometrias do SQLite local...
+[2026-01-27 10:45:38.689] ✅ Biometrias retornadas: 1
+[2026-01-27 10:45:38.689] 🔍 Verificando template capturado contra 1 biometrias...
+[2026-01-27 10:45:38.690]    Testando biometria 1: Gabriel Gomes da Silva Lima (1632 bytes)
+[2026-01-27 10:45:38.770]    ✅ MATCH! Cooperado: Gabriel Gomes da Silva Lima
+[2026-01-27 10:45:38.770] ✅ Digital identificada: Gabriel Gomes da Silva Lima
+[2026-01-27 10:45:38.779]    Tipo de registro: SAIDA (lógica tolerância/plantão)
+[2026-01-27 10:50:48.786] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-27 10:50:50.581]    ✅ Conexão estabelecida
+[2026-01-27 10:50:50.582]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-27 10:50:51.300]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-27 10:50:51.301]    🏢 Setor #2: ID=5, Nome=UTI
+[2026-01-27 10:50:51.302]    ✅ Total: 2 setores encontrados
+[2026-01-27 10:50:51.482]    💾 Setores salvos no cache local
+[2026-01-29 12:05:51.912] 🏢 Buscando setores do hospital 3967c7dc-dbd0-4973-bb3c-915311cc06d4...
+[2026-01-29 12:05:53.297]    ✅ Conexão estabelecida
+[2026-01-29 12:05:53.298]    📝 Query SQL: 
+                    SELECT DISTINCT s.id, s.nome 
+                    FROM hospital_setores hs
+                    INNER JOIN setores s ON hs.setor_id = s.id
+                    WHERE hs.hospital_id = @hospital_id
+                    ORDER BY s.nome
+[2026-01-29 12:05:53.574]    🏢 Setor #1: ID=2, Nome=CLINICA MEDICA
+[2026-01-29 12:05:53.575]    🏢 Setor #2: ID=10, Nome=NAC
+[2026-01-29 12:05:53.577]    🏢 Setor #3: ID=7, Nome=NEONATOLOGIA
+[2026-01-29 12:05:53.577]    🏢 Setor #4: ID=5, Nome=UTI
+[2026-01-29 12:05:53.579]    ✅ Total: 4 setores encontrados
+[2026-01-29 12:05:53.644]    💾 Setores salvos no cache local
+[2026-01-29 16:33:24.466] 🏥 Buscando hospitais no NEON...
+[2026-01-29 16:33:25.939]    ✅ Conexão com NEON estabelecida
+[2026-01-29 16:33:25.940]    📝 Query SQL: SELECT id, nome, slug FROM hospitals ORDER BY nome LIMIT 100
+[2026-01-29 16:33:26.094]    🔍 Executando query...
+[2026-01-29 16:33:26.149]    🏥 Hospital #1: ID=3967c7dc-dbd0-4973-bb3c-915311cc06d4, Nome=COOPEN, Codigo=coopen
+[2026-01-29 16:33:26.150]    🏥 Hospital #2: ID=852535fa-d14b-43f7-a118-5096ef7ab867, Nome=HGWA, Codigo=hgwa
+[2026-01-29 16:33:26.150]    🏥 Hospital #3: ID=86de3a3a-d037-4b71-bf6f-c4371857ebec, Nome=HRC, Codigo=hrc
+[2026-01-29 16:33:26.151]    🏥 Hospital #4: ID=552477cc-fc66-4c3b-968f-56b39c5391f7, Nome=HRN, Codigo=hrn
+[2026-01-29 16:33:26.151]    🏥 Hospital #5: ID=d580d8f3-0e0f-4431-87c9-939536891094, Nome=HRVJ, Codigo=hrvj
+[2026-01-29 16:33:26.152]    🏥 Hospital #6: ID=06a2d20b-8aa9-4909-8ac4-a8f8dbf86da1, Nome=UPA Messejana, Codigo=upamesseja
+[2026-01-29 16:33:26.154]    ✅ Total: 6 hospitais encontrados
